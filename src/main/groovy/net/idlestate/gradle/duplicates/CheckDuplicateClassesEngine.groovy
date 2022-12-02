@@ -186,15 +186,24 @@ class CheckDuplicateClassesEngine {
         htmlTemplate = buildTableHeader(jarFiles, htmlTemplate)
 
         StringBuilder classesRows = new StringBuilder()
+        StringBuilder duplicateClassesRows = new StringBuilder()
         allFiles.forEach { file ->
             classesRows.append("<tr>").append("<td>").append(file).append("</td>")
+            def counter = 0
             jarFiles.forEach {
+                counter += jarFileContent.get(it).contains(file) ? 1 : 0
                 def value = jarFileContent.get(it).contains(file) ? "*" : "-"
                 classesRows.append("<td class=\"present\">").append(value).append("</td>")
             }
+            if(counter == jarFiles.size){
+                classesRows.append("<td>").append("DUPLICATE").append("</td>")
+                duplicateClassesRows.append("<tr>").append("<td>").append(file).append("</td>").append("</tr>")
+            } else {
+                classesRows.append("<td>").append("").append("</td>")
+            }
             classesRows.append("</tr>")
         }
-
+        htmlTemplate = htmlTemplate.replace("____duplicates____", duplicateClassesRows.toString())
         htmlTemplate.replace("____class file names____", classesRows.toString())
     }
 
@@ -209,6 +218,8 @@ class CheckDuplicateClassesEngine {
         jarFiles.forEach {
             tableHead.append("<td>").append(it).append("</td>")
         }
+
+        tableHead.append("<td>").append("Status").append("</td>")
 
         htmlTemplate.replace("____jar file names____", tableHead.toString())
     }
